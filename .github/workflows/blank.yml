@@ -1,0 +1,23 @@
+
+name: StreamHub Basic Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  repository-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify project documentation
+        run: |
+          test -f README.md
+          test -f StreamHub_SRS.pdf
+          test -f StreamHub_SAD.pdf
+          test -f StreamHub_Test_Plan.pdf
+          echo "All required StreamHub documents are present."
