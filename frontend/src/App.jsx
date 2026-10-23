@@ -1,6 +1,9 @@
+
 import { useState } from "react";
 import "./App.css";
 import ForgotPassword from "./ForgotPassword";
+import Auth from "./Auth";
+import Login from "./Login";
 
 const movies = [
   {
@@ -103,31 +106,97 @@ const movies = [
   },
 ];
 
-const genres = ["All", "Action", "Comedy", "Thriller", "Sci-Fi", "Romance", "Horror", "Drama"];
+const genres = [
+  "All",
+  "Action",
+  "Comedy",
+  "Thriller",
+  "Sci-Fi",
+  "Romance",
+  "Horror",
+  "Drama",
+];
 
 function App() {
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [screen, setScreen] = useState("home");
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const savedUser = sessionStorage.getItem("streamhub_user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const filteredMovies = movies.filter((movie) => {
-  const matchesGenre =
-    selectedGenre === "All" || movie.genre === selectedGenre;
+    const matchesGenre =
+      selectedGenre === "All" || movie.genre === selectedGenre;
 
-  const matchesSearch = movie.title
-    .toLowerCase()
-    .includes(searchQuery.trim().toLowerCase());
+    const matchesSearch = movie.title
+      .toLowerCase()
+      .includes(searchQuery.trim().toLowerCase());
 
-  return matchesGenre && matchesSearch;
-    });
-    if (showForgotPassword) {
-      return <ForgotPassword />;
+    return matchesGenre && matchesSearch;
+  });
+
+  function goHome() {
+    setScreen("home");
+  }
+
+  function handleLogin(user) {
+    if (user) {
+      sessionStorage.setItem("streamhub_user", JSON.stringify(user));
+      setCurrentUser(user);
     }
+
+    setScreen("home");
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem("streamhub_access_token");
+    sessionStorage.removeItem("streamhub_user");
+    setCurrentUser(null);
+    setScreen("home");
+  }
+
+  // Forgot Password screen
+  if (screen === "forgot") {
+    return <ForgotPassword />;
+  }
+
+  // Sign Up and OTP verification screen
+  if (screen === "signup") {
+    return (
+      <Auth
+        onBack={goHome}
+        onVerified={() => setScreen("login")}
+      />
+    );
+  }
+
+  // Login screen
+  if (screen === "login") {
+    return (
+      <Login
+        onBack={goHome}
+        onLoggedIn={handleLogin}
+        onForgotPassword={() => setScreen("forgot")}
+      />
+    );
+  }
+
+  // Original StreamHub homepage
   return (
-    
     <div className="app">
       <header className="navbar">
-        <a className="brand" href="#home">
+        <a
+          className="brand"
+          href="#home"
+          onClick={goHome}
+        >
           <span className="brand-icon">▶</span> StreamHub
         </a>
 
@@ -137,22 +206,69 @@ function App() {
           <a href="#genres">Genres</a>
         </nav>
 
-        <span className="profile">Viewer</span>
-        <button
-          type="button"
-          onClick={() => setShowForgotPassword(true)}
-        >
-          Forgot Password?
-        </button>
+        {currentUser ? (
+          <div className="profile-actions">
+            <span className="profile">
+              {currentUser.name ||
+                currentUser.username ||
+                currentUser.email ||
+                "Viewer"}
+            </span>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setScreen("forgot")}
+            >
+              Forgot Password?
+            </button>
+          </div>
+        ) : (
+          <div className="profile-actions">
+            <button
+              type="button"
+              onClick={() => setScreen("login")}
+            >
+              Log In
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setScreen("signup")}
+            >
+              Sign Up
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setScreen("forgot")}
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
       </header>
 
       <main>
         <section className="hero" id="home">
-          <p className="eyebrow">YOUR ENTERTAINMENT DESTINATION</p>
-          <h1>Stories worth <span>watching.</span></h1>
+          <p className="eyebrow">
+            YOUR ENTERTAINMENT DESTINATION
+          </p>
+
+          <h1>
+            Stories worth <span>watching.</span>
+          </h1>
+
           <p className="hero-description">
             Discover movies for every mood, all in one place.
           </p>
+
           <a className="explore-button" href="#genres">
             Explore Movies ↓
           </a>
@@ -161,9 +277,12 @@ function App() {
         <section className="catalog" id="movies">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">FIND YOUR NEXT FAVORITE</p>
+              <p className="eyebrow">
+                FIND YOUR NEXT FAVORITE
+              </p>
               <h2>Browse by Genre</h2>
             </div>
+
             <span className="movie-count">
               {filteredMovies.length} titles
             </span>
@@ -171,30 +290,35 @@ function App() {
 
           <div className="genre-list" id="genres">
             <div className="search-container">
-            <input
-              type="search"
-              className="search-input"
-              placeholder="Search movies and shows..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              aria-label="Search movies and shows"
-            />
-            {searchQuery && (
-              <button
-                className="clear-search"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+              <input
+                type="search"
+                className="search-input"
+                placeholder="Search movies and shows..."
+                value={searchQuery}
+                onChange={(event) =>
+                  setSearchQuery(event.target.value)
+                }
+                aria-label="Search movies and shows"
+              />
+
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="clear-search"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             {genres.map((genre) => (
               <button
+                type="button"
                 key={genre}
-                className={`genre-button ${
-                  selectedGenre === genre ? "active" : ""
-                }`}
+                className={`genre-button ${selectedGenre === genre ? "active" : ""
+                  }`}
                 onClick={() => setSelectedGenre(genre)}
                 aria-pressed={selectedGenre === genre}
               >
@@ -204,7 +328,12 @@ function App() {
           </div>
 
           <div className="results-heading">
-            <h3>{selectedGenre === "All" ? "Popular Movies" : `${selectedGenre} Movies`}</h3>
+            <h3>
+              {selectedGenre === "All"
+                ? "Popular Movies"
+                : `${selectedGenre} Movies`}
+            </h3>
+
             <span>Explore the collection</span>
           </div>
 
@@ -212,21 +341,33 @@ function App() {
             <div className="movie-grid">
               {filteredMovies.map((movie) => (
                 <article className="movie-card" key={movie.id}>
-                  <div className={`movie-poster poster-${movie.genre.toLowerCase().replace(/[^a-z]/g, "")}`}>
+                  <div
+                    className={`movie-poster poster-${movie.genre
+                      .toLowerCase()
+                      .replace(/[^a-z]/g, "")}`}
+                  >
                     <img
-                        className="movie-poster"
-                        src={movie.poster}
-                        alt={`${movie.title} poster`}
-                        loading="lazy"
-                      />
-                    <span className="poster-year">{movie.year}</span>
+                      className="poster-image"
+                      src={movie.poster}
+                      alt={`${movie.title} poster`}
+                      loading="lazy"
+                    />
+
+                    <span className="poster-year">
+                      {movie.year}
+                    </span>
                   </div>
+
                   <div className="movie-info">
                     <div>
                       <h4>{movie.title}</h4>
                       <p>{movie.genre}</p>
                     </div>
-                    <span className="play-icon" aria-label={`Play ${movie.title}`}>
+
+                    <span
+                      className="play-icon"
+                      aria-label={`Play ${movie.title}`}
+                    >
                       ▶
                     </span>
                   </div>
@@ -250,6 +391,7 @@ function App() {
               </p>
 
               <button
+                type="button"
                 onClick={() => {
                   setSelectedGenre("All");
                   setSearchQuery("");
@@ -266,7 +408,9 @@ function App() {
         <a className="brand" href="#home">
           <span className="brand-icon">▶</span> StreamHub
         </a>
+
         <p>Discover. Watch. Personalize. Subscribe.</p>
+
         <span>Team 04 · StreamHub</span>
       </footer>
     </div>
