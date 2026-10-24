@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "../features.css";
 import { getPlayback } from "./playbackApi";
+import useResume from "./useResume";
 import VideoPlayer from "./VideoPlayer";
 
 export default function WatchPage({ titleId, onBack }) {
@@ -15,6 +16,8 @@ export default function WatchPage({ titleId, onBack }) {
       .then(setInfo)
       .catch((e) => setError(e.message));
   }, [titleId]);
+
+  useResume(titleId, videoRef, info !== null);
 
   let content;
   if (error) {
