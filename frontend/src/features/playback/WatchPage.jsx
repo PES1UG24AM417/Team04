@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "../features.css";
 import { getPlayback } from "./playbackApi";
 import useResume from "./useResume";
+import useWatchHistory from "./useWatchHistory";
 import VideoPlayer from "./VideoPlayer";
 
 export default function WatchPage({ titleId, onBack }) {
@@ -18,6 +19,7 @@ export default function WatchPage({ titleId, onBack }) {
   }, [titleId]);
 
   useResume(titleId, videoRef, info !== null);
+  useWatchHistory(titleId, videoRef, info !== null);
 
   let content;
   if (error) {
