@@ -10,6 +10,19 @@ def now_utc():
     return datetime.now(timezone.utc)
 
 
+class WatchHistory(Base):
+    """One row per viewing session (OTT-F-022)."""
+
+    __tablename__ = "watch_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    title_id: Mapped[int] = mapped_column(ForeignKey("titles.id"), nullable=False)
+    watched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=now_utc, nullable=False
+    )  # stored as UTC
+
+
 class PlaybackProgress(Base):
     """Last watched position for one user and one title (OTT-F-021)."""
 
