@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "../features.css";
+import WatchlistButton from "../watchlist/WatchlistButton";
 import { getPlayback } from "./playbackApi";
 import useResume from "./useResume";
 import useWatchHistory from "./useWatchHistory";
@@ -31,6 +32,9 @@ export default function WatchPage({ titleId, onBack }) {
       <div>
         <h2>{info.title}</h2>
         <VideoPlayer src={info.video_url} videoRef={videoRef} />
+        <p>
+          <WatchlistButton titleId={titleId} />
+        </p>
       </div>
     );
   }
