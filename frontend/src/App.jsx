@@ -6,6 +6,7 @@ import Auth from "./Auth";
 import Login from "./Login";
 import SubscriptionStatus from "./features/subscription/SubscriptionStatus";
 import WatchPage from "./features/playback/WatchPage";
+import HistoryPage from "./features/playback/HistoryPage";
 
 const movies = [
   {
@@ -180,6 +181,11 @@ function App() {
     return <WatchPage titleId={watchTitleId} onBack={goHome} />;
   }
 
+  // Watch history screen (issue #9)
+  if (screen === "history") {
+    return <HistoryPage onPlay={playMovie} onBack={goHome} />;
+  }
+
   // My subscription screen (issue #14)
   if (screen === "account") {
     return <SubscriptionStatus onBack={goHome} />;
@@ -237,6 +243,13 @@ function App() {
                 currentUser.email ||
                 "Viewer"}
             </span>
+
+            <button
+              type="button"
+              onClick={() => setScreen("history")}
+            >
+              History
+            </button>
 
             <button
               type="button"
