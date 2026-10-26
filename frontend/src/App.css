@@ -540,3 +540,36 @@ footer .brand {
     justify-content: flex-start;
   }
 }
+
+.movie-rating {
+  padding: 12px 0;
+}
+
+.movie-rating p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 5px;
+}
+
+.rating-star {
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: #777;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.rating-star:hover,
+.rating-star.selected {
+  color: #ffc107;
+}
+
+.rating-star:focus-visible {
+  outline: 2px solid #ffc107;
+  outline-offset: 2px;
+}

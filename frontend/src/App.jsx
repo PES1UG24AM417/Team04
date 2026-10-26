@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import ForgotPassword from "./ForgotPassword";
 import Auth from "./Auth";
@@ -8,6 +8,7 @@ import SubscriptionStatus from "./features/subscription/SubscriptionStatus";
 import WatchPage from "./features/playback/WatchPage";
 import HistoryPage from "./features/playback/HistoryPage";
 import WatchlistPage from "./features/watchlist/WatchlistPage";
+import { apiFetch } from "./features/api";
 
 const movies = [
   {
@@ -126,6 +127,8 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [screen, setScreen] = useState("home");
   const [watchTitleId, setWatchTitleId] = useState(null);
+  const [ratings, setRatings] = useState({});
+  const [ratingMessage, setRatingMessage] = useState({});
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
@@ -169,7 +172,38 @@ function App() {
 
     setScreen("home");
   }
+  
+  async function submitRating(titleId, rating) {
+  if (!currentUser) {
+    setScreen("login");
+    return;
+  }
 
+  try {
+    const result = await apiFetch("/ratings/", {
+      method: "POST",
+      body: JSON.stringify({
+        title_id: titleId,
+        rating,
+      }),
+    });
+
+    setRatings((previous) => ({
+      ...previous,
+      [titleId]: result.rating,
+    }));
+
+    setRatingMessage((previous) => ({
+      ...previous,
+      [titleId]: "Rating saved!",
+    }));
+  } catch (error) {
+    setRatingMessage((previous) => ({
+      ...previous,
+      [titleId]: error.message,
+    }));
+  }
+}
   function handleLogout() {
     sessionStorage.removeItem("streamhub_access_token");
     sessionStorage.removeItem("streamhub_user");
@@ -397,6 +431,32 @@ function App() {
             <div className="movie-grid">
               {filteredMovies.map((movie) => (
                 <article className="movie-card" key={movie.id}>
+                  <div className="movie-rating">
+  <p>Rate this title</p>
+
+  <div className="rating-stars">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        className={
+          star <= (ratings[movie.id] || 0)
+            ? "rating-star selected"
+            : "rating-star"
+        }
+        onClick={() => submitRating(movie.id, star)}
+        aria-label={`Rate ${movie.title} ${star} out of 5 stars`}
+        title={`${star} star${star === 1 ? "" : "s"}`}
+      >
+        ★
+      </button>
+    ))}
+  </div>
+
+  {ratingMessage[movie.id] && (
+    <p role="status">{ratingMessage[movie.id]}</p>
+  )}
+</div>
                   <div
                     className={`movie-poster poster-${movie.genre
                       .toLowerCase()
